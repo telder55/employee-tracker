@@ -4,15 +4,22 @@ const cTable = require('console.table');
 
 // create the connection information for the sql database
 const connection = mysql.createConnection({
-  host: 'localhost',
-  port: 3306,
-  user: 'root',
-  password: 'supersimple',
-  database: 'employee_db',
+    host: 'localhost',
+    port: 3306,
+    user: 'root',
+    password: 'supersimple',
+    database: 'employee_db',
+
+});
+
+connection.connect((err) => {
+    if (err) throw err;
+    console.log(`connected as id ${connection.threadId}`);
+    connection.end();
+
 });
 
 // Create a function for the initial prompt and choices
-
 const initialQuestions = () =>
     inquirer
         .prompt([
@@ -24,12 +31,19 @@ const initialQuestions = () =>
             },
 
         ])
-        .then(() => {
-            console.log("Reached this location");
-
-        }
-
-        )
+        .then((answer) => {
+            switch (answer.initPrompt) {
+                case 'View All Employees':
+                    console.log('View All Employees was selected');
+                    break;
+                case 'View All Employees by Department':
+                    console.log('View All Employees by Department was selected');
+                    break;
+                default:
+                    console.log("No Cases matched");
+                    break;
+            }
+        })
     ;
 
 initialQuestions();
