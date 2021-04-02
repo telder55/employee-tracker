@@ -25,3 +25,9 @@ CREATE TABLE Employee (
   manager_id INT,
   PRIMARY KEY (id)
 );
+
+-- Code for use later
+-- DELETE FROM `employee_db`.`Employee` WHERE (`id` = '1');
+-- DELETE FROM `employee_db`.`Employee` WHERE (`id` = '2');
+-- DELETE FROM `employee_db`.`Employee` WHERE (`id` = '3');
+-- DELETE FROM `employee_db`.`Employee` WHERE (`id` = '4');
