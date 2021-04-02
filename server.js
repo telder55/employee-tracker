@@ -127,7 +127,7 @@ const createEmployee = (first, last, roleID, managerID) => {
 }
 
 
-// Need to fill in choices with list of employees from database! Choices is an array, how can I get an array in there?
+// Gets an array of employees in database. First and last names. 
 const getEmployeesArray = () => {
     connection.query("SELECT first_name, last_name FROM employee_db.Employee;" , function (error, results, fields) {
         const resultsString = JSON.stringify(results);
@@ -135,7 +135,7 @@ const getEmployeesArray = () => {
         const employeesArray = []
         for (let i = 0; i < resultsArray.length; i++) {
             const element = resultsArray[i].first_name + " " + resultsArray[i].last_name;
-            newArray.push(element);
+            employeesArray.push(element);
             
         }
         removeEmployeePrompt(employeesArray);
@@ -149,40 +149,22 @@ const removeEmployeePrompt = (results) => {
         .prompt([ 
             {
                 type: 'list',
-                name: 'role',
+                name: 'remove',
                 message: "Which employee would you like to remove?",
                 choices: results,
             },
 
         ])
         .then((answer) => {
-            console.log(answer);
-            switch (answer.role) {
-                case 'Salesperson':
-                    // Passing First and Last name, and role ID 1, manager ID 2
-                    createEmployee(answer.firstName, answer.lastName, 1, null)
-                    break;
-                case 'Sales Lead':
-                    createEmployee(answer.firstName, answer.lastName, 2, 1)
-                    break;
-                case 'Software Engineer':
-                    createEmployee(answer.firstName, answer.lastName, 3, null)
-                    break;
-                case 'Lead Engineer':
-                    createEmployee(answer.firstName, answer.lastName, 4, 2)
-                    break;
-                case 'Accountant':
-                    createEmployee(answer.firstName, answer.lastName, 5, null)
-                    break;
-                case 'Lawyer':
-                    createEmployee(answer.firstName, answer.lastName, 6, null)
-                    break;
-                case 'Legal Team Lead':
-                    createEmployee(answer.firstName, answer.lastName, 7, 3)
-                    break;
-                default:
-                    break;
-            }
+            console.log('Removed ', answer.remove);
+            // How Can I check the ID to see which employee to delete? 
+
+            // Tested to make sure delete is working properly. 
+            // const deleteQuery = "DELETE FROM `employee_db`.`Employee` WHERE (`first_name` = 'Ms. Lady');"
+            // connection.query(deleteQuery, function (error, results, fields) {
+            //     console.log(results);
+            // });
+      
         })
     ;
 
