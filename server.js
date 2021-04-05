@@ -46,7 +46,7 @@ const initialQuestions = () =>
           viewEmployees();
           break;
         case "View All Employees by Department":
-          viewByDeptPrompt();
+          getDept();
           break;
         case "View All Employees by Manager":
           break;
@@ -282,41 +282,40 @@ const viewEmployees = () => {
   );
 };
 
-const viewByDeptPrompt = () => {
+const getDept = () => {
+  connection.query(
+    "SELECT name, id FROM employee_db.Department;",
+    function (error, results, fields) {
+      const resultsString = JSON.stringify(results);
+      const resultsArray = JSON.parse(resultsString);
+      viewByDeptPrompt(resultsArray);
+    }
+  );
+};
+
+const viewByDeptPrompt = (results) => {
+  const deptArray2 = [];
+  for (let i = 0; i < results.length; i++) {
+    const deptObject2 = {};
+    const deptName2 = results[i].name;
+    deptObject2.name = deptName2;
+    deptObject2.value = results[i].id;
+    deptArray2.push(deptObject2);
+  }
   inquirer
     .prompt([
       {
         type: "list",
         name: "deptPrompt",
         message: "Which department would you like to view?",
-        choices: ["Accounting", "Engineering", "Finance", "Legal", "Sales"],
+        choices: deptArray2,
       },
     ])
     .then((answer) => {
-      switch (answer.deptPrompt) {
-        case "Accounting":
-          break;
-        case "Engineering":
-          break;
-        case "Finance":
-          break;
-        case "Legal":
-          break;
-        case "Sales":
-          break;
-        default:
-          connection.end();
-          break;
-      }
+      const deptQuery = `SELECT Employee.first_name, Employee.last_name, Role.title FROM Employee INNER JOIN Role ON Employee.role_id = Role.id WHERE role_id=${answer.deptPrompt};`;
+      connection.query(deptQuery, function (error, results, fields) {
+        console.table(" ", results);
+        initialQuestions();
+      });
     });
-};
-
-const viewByDept = () => {
-  connection.query(
-    "SELECT * FROM employee_db.Department;",
-    function (error, results, fields) {
-      console.table(results);
-      initialQuestions();
-    }
-  );
 };
