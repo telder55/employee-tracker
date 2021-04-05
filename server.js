@@ -9,6 +9,7 @@ const connection = mysql.createConnection({
   user: "root",
   password: "supersimple",
   database: "employee_db",
+  multipleStatements: true,
 });
 
 connection.connect((err) => {
@@ -74,15 +75,25 @@ const initialQuestions = () =>
 initialQuestions();
 
 // Function for adding a new employee
-const addEmployee = (results) => {
+const addEmployee = (employeeResults, roleResults) => {
   const employeesArrayAdd = [{ name: "No Manager", value: null }];
-  for (let i = 0; i < results.length; i++) {
+  for (let i = 0; i < employeeResults.length; i++) {
     const employeeObject = {};
-    const element = results[i].first_name + " " + results[i].last_name;
+    const element =
+      employeeResults[i].first_name + " " + employeeResults[i].last_name;
     employeeObject.name = element;
-    employeeObject.value = results[i].id;
+    employeeObject.value = employeeResults[i].id;
     employeesArrayAdd.push(employeeObject);
   }
+  const roleArrayAdd = [];
+  for (let i = 0; i < roleResults.length; i++) {
+    const roleObject = {};
+    const element = roleResults[i].title;
+    roleObject.name = element;
+    roleObject.value = roleResults[i].id;
+    roleArrayAdd.push(roleObject);
+  }
+
   inquirer
     .prompt([
       {
@@ -99,15 +110,7 @@ const addEmployee = (results) => {
         type: "list",
         name: "role",
         message: "What is the employee's role?",
-        choices: [
-          "Salesperson",
-          "Sales Lead",
-          "Software Engineer",
-          "Lead Engineer",
-          "Accountant",
-          "Lawyer",
-          "Legal Team Lead",
-        ],
+        choices: roleArrayAdd,
       },
       {
         type: "list",
@@ -117,34 +120,12 @@ const addEmployee = (results) => {
       },
     ])
     .then((answer) => {
-      console.log(answer);
-      switch (answer.role) {
-        case "Salesperson":
-          // Passing First name, Last name, role ID, manager ID
-          createEmployee(answer.firstName, answer.lastName, 1, answer.manager);
-          console.log(answer.manager);
-          break;
-        case "Sales Lead":
-          createEmployee(answer.firstName, answer.lastName, 2, answer.manager);
-          break;
-        case "Software Engineer":
-          createEmployee(answer.firstName, answer.lastName, 3, answer.manager);
-          break;
-        case "Lead Engineer":
-          createEmployee(answer.firstName, answer.lastName, 4, answer.manager);
-          break;
-        case "Accountant":
-          createEmployee(answer.firstName, answer.lastName, 5, answer.manager);
-          break;
-        case "Lawyer":
-          createEmployee(answer.firstName, answer.lastName, 6, answer.manager);
-          break;
-        case "Legal Team Lead":
-          createEmployee(answer.firstName, answer.lastName, 7, answer.manager);
-          break;
-        default:
-          break;
-      }
+      createEmployee(
+        answer.firstName,
+        answer.lastName,
+        answer.role,
+        answer.manager
+      );
     });
 };
 const createEmployee = (first, last, roleID, managerID) => {
@@ -240,16 +221,16 @@ const getEmployeesArrayRemove = () => {
 // Gets an array of employees in database then calls Add Employees
 const getEmployeesArrayAdd = () => {
   connection.query(
-    "SELECT first_name, last_name, id FROM employee_db.Employee;",
+    "SELECT first_name, last_name, id FROM employee_db.Employee; SELECT title, id FROM employee_db.Role",
     function (error, results, fields) {
       const resultsString = JSON.stringify(results);
       const resultsArray = JSON.parse(resultsString);
-      addEmployee(resultsArray);
+      addEmployee(resultsArray[0], resultsArray[1]);
     }
   );
 };
 
-// Gets an array of employees in database then calls Add Employees
+// Gets an array of department names and ID's and passes to addRole function.
 const getDepartmentsArray = () => {
   connection.query(
     "SELECT name, id FROM employee_db.Department;",
