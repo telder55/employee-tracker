@@ -30,6 +30,8 @@ const initialQuestions = () =>
           "View All Employees by Department",
           "View All Employees by Manager",
           "Add Employee",
+          "Add Department",
+          "Add Role",
           "Remove Employee",
           "Update Employee Role",
           "Update Employee Manager",
@@ -50,6 +52,12 @@ const initialQuestions = () =>
         case "Add Employee":
           addEmployee();
           break;
+        case "Add Department":
+          addDepartment();
+          break;
+        case "Add Role":
+          addRole();
+          break;
         case "Remove Employee":
           getEmployeesArray();
           break;
@@ -58,7 +66,7 @@ const initialQuestions = () =>
         case "Update Employee Manager":
           break;
         default:
-          console.log("No Cases matched");
+          console.log("Goodbye!");
           connection.end();
           break;
       }
@@ -127,6 +135,31 @@ const createEmployee = (first, last, roleID, managerID) => {
   const newQuery = `INSERT INTO Employee (first_name, last_name, role_id, manager_id) VALUES ("${first}", "${last}", ${roleID}, ${managerID});`;
 
   connection.query(newQuery, function (error, results, fields) {
+    // error will be an Error if one occurred during the query
+    // results will contain the results of the query
+    // fields will contain information about the returned results fields (if any)
+  });
+  initialQuestions();
+};
+
+// Function for adding a new department
+const addDepartment = () =>
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "department",
+        message: "Enter the Department Name",
+      },
+    ])
+    .then((answer) => {
+      console.log(answer.department);
+      createDepartment(answer.department);
+    });
+const createDepartment = (department) => {
+  const newDept = `INSERT INTO Department (name) VALUES ("${department}");`;
+
+  connection.query(newDept, function (error, results, fields) {
     // error will be an Error if one occurred during the query
     // results will contain the results of the query
     // fields will contain information about the returned results fields (if any)
