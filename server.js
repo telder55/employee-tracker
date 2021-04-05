@@ -50,7 +50,7 @@ const initialQuestions = () =>
         case "View All Employees by Manager":
           break;
         case "Add Employee":
-          addEmployee();
+          getEmployeesArrayAdd();
           break;
         case "Add Department":
           addDepartment();
@@ -59,7 +59,7 @@ const initialQuestions = () =>
           addRole();
           break;
         case "Remove Employee":
-          getEmployeesArray();
+          getEmployeesArrayRemove();
           break;
         case "Update Employee Role":
           break;
@@ -74,7 +74,15 @@ const initialQuestions = () =>
 initialQuestions();
 
 // Function for adding a new employee
-const addEmployee = () =>
+const addEmployee = (results) => {
+  const employeesArrayAdd = [{ name: "No Manager", value: null }];
+  for (let i = 0; i < results.length; i++) {
+    const employeeObject = {};
+    const element = results[i].first_name + " " + results[i].last_name;
+    employeeObject.name = element;
+    employeeObject.value = results[i].id;
+    employeesArrayAdd.push(employeeObject);
+  }
   inquirer
     .prompt([
       {
@@ -101,36 +109,44 @@ const addEmployee = () =>
           "Legal Team Lead",
         ],
       },
+      {
+        type: "list",
+        name: "manager",
+        message: "Who is the employee's manager?",
+        choices: employeesArrayAdd,
+      },
     ])
     .then((answer) => {
       console.log(answer);
       switch (answer.role) {
         case "Salesperson":
-          // Passing First and Last name, and role ID 1, manager ID 2
-          createEmployee(answer.firstName, answer.lastName, 1, null);
+          // Passing First name, Last name, role ID, manager ID
+          createEmployee(answer.firstName, answer.lastName, 1, answer.manager);
+          console.log(answer.manager);
           break;
         case "Sales Lead":
-          createEmployee(answer.firstName, answer.lastName, 2, 1);
+          createEmployee(answer.firstName, answer.lastName, 2, answer.manager);
           break;
         case "Software Engineer":
-          createEmployee(answer.firstName, answer.lastName, 3, null);
+          createEmployee(answer.firstName, answer.lastName, 3, answer.manager);
           break;
         case "Lead Engineer":
-          createEmployee(answer.firstName, answer.lastName, 4, 2);
+          createEmployee(answer.firstName, answer.lastName, 4, answer.manager);
           break;
         case "Accountant":
-          createEmployee(answer.firstName, answer.lastName, 5, null);
+          createEmployee(answer.firstName, answer.lastName, 5, answer.manager);
           break;
         case "Lawyer":
-          createEmployee(answer.firstName, answer.lastName, 6, null);
+          createEmployee(answer.firstName, answer.lastName, 6, answer.manager);
           break;
         case "Legal Team Lead":
-          createEmployee(answer.firstName, answer.lastName, 7, 3);
+          createEmployee(answer.firstName, answer.lastName, 7, answer.manager);
           break;
         default:
           break;
       }
     });
+};
 const createEmployee = (first, last, roleID, managerID) => {
   const newQuery = `INSERT INTO Employee (first_name, last_name, role_id, manager_id) VALUES ("${first}", "${last}", ${roleID}, ${managerID});`;
 
@@ -199,8 +215,8 @@ const createRole = (title, salary, department) => {
   initialQuestions();
 };
 
-// Gets an array of employees in database. First and last names.
-const getEmployeesArray = () => {
+// Gets an array of employees in database then calls remove employees
+const getEmployeesArrayRemove = () => {
   connection.query(
     "SELECT first_name, last_name, id FROM employee_db.Employee;",
     function (error, results, fields) {
@@ -211,14 +227,26 @@ const getEmployeesArray = () => {
   );
 };
 
+// Gets an array of employees in database then calls Add Employees
+const getEmployeesArrayAdd = () => {
+  connection.query(
+    "SELECT first_name, last_name, id FROM employee_db.Employee;",
+    function (error, results, fields) {
+      const resultsString = JSON.stringify(results);
+      const resultsArray = JSON.parse(resultsString);
+      addEmployee(resultsArray);
+    }
+  );
+};
+
 const removeEmployeePrompt = (results) => {
-  const employeesArray = [];
+  const employeesArrayRemove = [];
   for (let i = 0; i < results.length; i++) {
     const employeeObject = {};
     const element = results[i].first_name + " " + results[i].last_name;
     employeeObject.name = element;
     employeeObject.value = results[i].id;
-    employeesArray.push(employeeObject);
+    employeesArrayRemove.push(employeeObject);
   }
 
   inquirer
@@ -227,7 +255,7 @@ const removeEmployeePrompt = (results) => {
         type: "list",
         name: "remove",
         message: "Which employee would you like to remove?",
-        choices: employeesArray,
+        choices: employeesArrayRemove,
       },
     ])
     .then((answer) => {
