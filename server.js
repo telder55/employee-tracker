@@ -153,13 +153,45 @@ const addDepartment = () =>
       },
     ])
     .then((answer) => {
-      console.log(answer.department);
       createDepartment(answer.department);
     });
 const createDepartment = (department) => {
   const newDept = `INSERT INTO Department (name) VALUES ("${department}");`;
-
   connection.query(newDept, function (error, results, fields) {
+    // error will be an Error if one occurred during the query
+    // results will contain the results of the query
+    // fields will contain information about the returned results fields (if any)
+  });
+  initialQuestions();
+};
+
+// Function for adding a new role
+const addRole = () =>
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "title",
+        message: "Enter the Job Title for this role",
+      },
+      {
+        type: "input",
+        name: "salary",
+        message: "Enter the Salary for this role",
+      },
+      {
+        type: "list",
+        name: "department",
+        message: "Choose a department for this role",
+        choices: [1, 2],
+      },
+    ])
+    .then((answer) => {
+      createRole(answer.title, answer.salary, answer.department);
+    });
+const createRole = (title, salary, department) => {
+  const newRole = `INSERT INTO Role (title, salary, department_id ) VALUES ("${title}",${salary},${department});`;
+  connection.query(newRole, function (error, results, fields) {
     // error will be an Error if one occurred during the query
     // results will contain the results of the query
     // fields will contain information about the returned results fields (if any)
