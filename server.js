@@ -56,7 +56,7 @@ const initialQuestions = () =>
           addDepartment();
           break;
         case "Add Role":
-          addRole();
+          getDepartmentsArray();
           break;
         case "Remove Employee":
           getEmployeesArrayRemove();
@@ -182,7 +182,15 @@ const createDepartment = (department) => {
 };
 
 // Function for adding a new role
-const addRole = () =>
+const addRole = (results) => {
+  const deptArray = [];
+  for (let i = 0; i < results.length; i++) {
+    const deptObject = {};
+    const deptName = results[i].name;
+    deptObject.name = deptName;
+    deptObject.value = results[i].id;
+    deptArray.push(deptObject);
+  }
   inquirer
     .prompt([
       {
@@ -199,12 +207,14 @@ const addRole = () =>
         type: "list",
         name: "department",
         message: "Choose a department for this role",
-        choices: [1, 2],
+        choices: deptArray,
       },
     ])
     .then((answer) => {
       createRole(answer.title, answer.salary, answer.department);
     });
+};
+
 const createRole = (title, salary, department) => {
   const newRole = `INSERT INTO Role (title, salary, department_id ) VALUES ("${title}",${salary},${department});`;
   connection.query(newRole, function (error, results, fields) {
@@ -235,6 +245,18 @@ const getEmployeesArrayAdd = () => {
       const resultsString = JSON.stringify(results);
       const resultsArray = JSON.parse(resultsString);
       addEmployee(resultsArray);
+    }
+  );
+};
+
+// Gets an array of employees in database then calls Add Employees
+const getDepartmentsArray = () => {
+  connection.query(
+    "SELECT name, id FROM employee_db.Department;",
+    function (error, results, fields) {
+      const resultsString = JSON.stringify(results);
+      const resultsArray = JSON.parse(resultsString);
+      addRole(resultsArray);
     }
   );
 };
