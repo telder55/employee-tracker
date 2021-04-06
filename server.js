@@ -28,8 +28,8 @@ const initialQuestions = () =>
         message: "Choose one of the following actions:",
         choices: [
           "View All Employees",
-          "View All Employees by Department",
-          "View All Employees by Manager",
+          "View Employees by Department",
+          "View Employees by Role",
           "Add Employee",
           "Add Department",
           "Add Role",
@@ -45,10 +45,11 @@ const initialQuestions = () =>
         case "View All Employees":
           viewEmployees();
           break;
-        case "View All Employees by Department":
+        case "View Employees by Department":
           getDept();
           break;
-        case "View All Employees by Manager":
+        case "View Employees by Role":
+          getRole();
           break;
         case "Add Employee":
           getEmployeesArrayAdd();
@@ -282,6 +283,7 @@ const viewEmployees = () => {
   );
 };
 
+// Getting list of departments to display in prompt.
 const getDept = () => {
   connection.query(
     "SELECT name, id FROM employee_db.Department;",
@@ -293,6 +295,19 @@ const getDept = () => {
   );
 };
 
+// Getting list of Roles to display in prompt
+const getRole = () => {
+  connection.query(
+    "SELECT title, id FROM employee_db.Role;",
+    function (error, results, fields) {
+      const resultsString = JSON.stringify(results);
+      const resultsArray = JSON.parse(resultsString);
+      viewByRolePrompt(resultsArray);
+    }
+  );
+};
+
+// Prompts user for which department they want to view then displays all employees in that department.
 const viewByDeptPrompt = (results) => {
   const deptArray2 = [];
   for (let i = 0; i < results.length; i++) {
@@ -314,6 +329,34 @@ const viewByDeptPrompt = (results) => {
     .then((answer) => {
       const deptQuery = `SELECT Employee.first_name, Employee.last_name, Role.title FROM Employee INNER JOIN Role ON Employee.role_id = Role.id WHERE role_id=${answer.deptPrompt};`;
       connection.query(deptQuery, function (error, results, fields) {
+        console.table(" ", results);
+        initialQuestions();
+      });
+    });
+};
+
+// Prompts user for which department they want to view then displays all employees in that department.
+const viewByRolePrompt = (results) => {
+  const roleArray = [];
+  for (let i = 0; i < results.length; i++) {
+    const roleObject = {};
+    const roleName = results[i].title;
+    roleObject.name = roleName;
+    roleObject.value = results[i].id;
+    roleArray.push(roleObject);
+  }
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "role",
+        message: "Which role would you like to view?",
+        choices: roleArray,
+      },
+    ])
+    .then((answer) => {
+      const roleQuery = `SELECT Employee.first_name, Employee.last_name FROM Employee WHERE role_id=${answer.role};`;
+      connection.query(roleQuery, function (error, results, fields) {
         console.table(" ", results);
         initialQuestions();
       });
