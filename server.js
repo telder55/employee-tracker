@@ -63,6 +63,7 @@ const initialQuestions = () =>
           getEmployeesArrayRemove();
           break;
         case "Update Employee Role":
+          getEmployeesArrayUpdate();
           break;
         default:
           console.log("Goodbye!");
@@ -196,11 +197,7 @@ const addRole = (results) => {
 
 const createRole = (title, salary, department) => {
   const newRole = `INSERT INTO Role (title, salary, department_id ) VALUES ("${title}",${salary},${department});`;
-  connection.query(newRole, function (error, results, fields) {
-    // error will be an Error if one occurred during the query
-    // results will contain the results of the query
-    // fields will contain information about the returned results fields (if any)
-  });
+  connection.query(newRole, function (error, results, fields) {});
   initialQuestions();
 };
 
@@ -228,6 +225,18 @@ const getEmployeesArrayAdd = () => {
   );
 };
 
+// Gets an array of employees in database then calls Update Employees
+const getEmployeesArrayUpdate = () => {
+  connection.query(
+    "SELECT first_name, last_name, id FROM employee_db.Employee; SELECT title, id FROM employee_db.Role",
+    function (error, results, fields) {
+      const resultsString = JSON.stringify(results);
+      const resultsArray = JSON.parse(resultsString);
+      updateEmployeePrompt(resultsArray[0], resultsArray[1]);
+    }
+  );
+};
+
 // Gets an array of department names and ID's and passes to addRole function.
 const getDepartmentsArray = () => {
   connection.query(
@@ -240,6 +249,7 @@ const getDepartmentsArray = () => {
   );
 };
 
+// Gets list of employees and prompts user which they would like to remove, then removes
 const removeEmployeePrompt = (results) => {
   const employeesArrayRemove = [];
   for (let i = 0; i < results.length; i++) {
@@ -260,16 +270,81 @@ const removeEmployeePrompt = (results) => {
       },
     ])
     .then((answer) => {
-      console.log("Removed ", answer);
-
       const deleteQuery = `DELETE FROM employee_db.Employee WHERE (id = '${answer.remove}');`;
       connection.query(deleteQuery, function (error, results, fields) {});
       initialQuestions();
     });
 };
 
-const updateRole = () => {};
+const updateEmployeePrompt = (results) => {
+  const employeesArrayUpdate = [];
+  for (let i = 0; i < results.length; i++) {
+    const employeeObject = {};
+    const element = results[i].first_name + " " + results[i].last_name;
+    employeeObject.name = element;
+    employeeObject.value = results[i].id;
+    employeesArrayUpdate.push(employeeObject);
+  }
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "updateEmployee",
+        message: "Which employee would you like to update?",
+        choices: employeesArrayUpdate,
+      },
+      {
+        type: "list",
+        name: "updateRole",
+        message: "What would you like to update for this employee?",
+        choices: ["Update Role", "Update Salary", "Update Manager"],
+      },
+    ])
+    .then((answer) => {
+      switch (answer.updateRole) {
+        case "Update Role":
+          // calls next function and passes ID of Employee
+          getRoleUpdate(answer.updateEmployee);
+          break;
+        case "Update Salary":
+          console.log("update salary");
+        case "Update Manager":
+          console.log("update manager");
+        default:
+          initialQuestions();
+          break;
+      }
+    });
+};
 
+// Should receive employee ID and
+const updateRole = (employeeID, results) => {
+  const employeeRoleUpdate = employeeID;
+  const roleArrayUpdate = [];
+  for (let i = 0; i < results.length; i++) {
+    const roleObject = {};
+    const element = results[i].title;
+    roleObject.name = element;
+    roleObject.value = results[i].id;
+    roleArrayUpdate.push(roleObject);
+  }
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "chooseRole",
+        message: "Choose a new role for this employee",
+        choices: roleArrayUpdate,
+      },
+    ])
+    .then((answer) => {
+      const updateRoleQuery = `UPDATE Employee SET role_id = ${answer.chooseRole} WHERE id = ${employeeRoleUpdate};`;
+      connection.query(updateRoleQuery, function (error, results, fields) {});
+      initialQuestions();
+    });
+};
+
+// Displays list of employees first name, last name, job title, and role id.
 const viewEmployees = () => {
   connection.query(
     "SELECT Employee.first_name, Employee.last_name, Role.title, Employee.role_id FROM Role INNER JOIN Employee ON Role.id = Employee.role_id;",
@@ -304,6 +379,18 @@ const getRole = () => {
   );
 };
 
+// Getting list of Roles to display in prompt for update function
+const getRoleUpdate = (employeeID) => {
+  connection.query(
+    "SELECT title, id FROM employee_db.Role;",
+    function (error, results, fields) {
+      const resultsString = JSON.stringify(results);
+      const resultsArray = JSON.parse(resultsString);
+      updateRole(employeeID, resultsArray);
+    }
+  );
+};
+
 // Prompts user for which department they want to view then displays all employees in that department.
 const viewByDeptPrompt = (results) => {
   const deptArray2 = [];
@@ -332,7 +419,7 @@ const viewByDeptPrompt = (results) => {
     });
 };
 
-// Prompts user for which department they want to view then displays all employees in that department.
+// Prompts user for which role they want to view employees of, then displays all employees in that department.
 const viewByRolePrompt = (results) => {
   const roleArray = [];
   for (let i = 0; i < results.length; i++) {
