@@ -44,7 +44,7 @@ const initialQuestions = () =>
         case "View All Employees":
           viewEmployees();
           break;
-        case "View Employees by Department":
+        case "View Departments":
           getDept();
           break;
         case "View Employees by Role":
@@ -297,7 +297,7 @@ const updateEmployeePrompt = (results) => {
         type: "list",
         name: "updateRole",
         message: "What would you like to update for this employee?",
-        choices: ["Update Role", "Update Salary", "Update Manager"],
+        choices: ["Update Role"],
       },
     ])
     .then((answer) => {
@@ -307,7 +307,7 @@ const updateEmployeePrompt = (results) => {
           getRoleUpdate(answer.updateEmployee);
           break;
         case "Update Salary":
-          console.log("update salary");
+          getSalaryUpdate(answer.updateEmployee);
         case "Update Manager":
           console.log("update manager");
         default:
@@ -389,6 +389,22 @@ const getRoleUpdate = (employeeID) => {
       updateRole(employeeID, resultsArray);
     }
   );
+};
+
+const salaryUpdate = (employeeID) => {
+  inquirer
+    .prompt([
+      {
+        type: "number",
+        name: "newSalary",
+        message: "Enter a new salary",
+      },
+    ])
+    .then((answer) => {
+      const updateSalaryQuery = `UPDATE Employee SET role_id = ${answer.chooseRole} WHERE id = ${employeeRoleUpdate};`;
+      connection.query(updateRoleQuery, function (error, results, fields) {});
+      initialQuestions();
+    });
 };
 
 // Prompts user for which department they want to view then displays all employees in that department.
