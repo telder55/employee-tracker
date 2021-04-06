@@ -35,7 +35,6 @@ const initialQuestions = () =>
           "Add Role",
           "Remove Employee",
           "Update Employee Role",
-          "Update Employee Manager",
           "Exit",
         ],
       },
@@ -64,8 +63,6 @@ const initialQuestions = () =>
           getEmployeesArrayRemove();
           break;
         case "Update Employee Role":
-          break;
-        case "Update Employee Manager":
           break;
         default:
           console.log("Goodbye!");
@@ -275,9 +272,9 @@ const updateRole = () => {};
 
 const viewEmployees = () => {
   connection.query(
-    "SELECT * FROM employee_db.Employee;",
+    "SELECT Employee.first_name, Employee.last_name, Role.title, Employee.role_id FROM Role INNER JOIN Employee ON Role.id = Employee.role_id;",
     function (error, results, fields) {
-      console.table(results);
+      console.table(" ", results);
       initialQuestions();
     }
   );
